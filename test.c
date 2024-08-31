@@ -3,9 +3,18 @@
 extern float convertStringToFloat(const char *str);
 extern float* extractAndConvertFloats(int *numFloats);
 extern double processArray(float *arr, int size);
-
+void testTask1() {
+    //custom test cases
+    float converted = convertStringToFloat("1.7\0");
+    printf("The value is %10.6lf",converted);
+    printf("\n");
+    converted = convertStringToFloat("0.54\0");
+    printf("The value is %10.6lf",converted);
+    printf("\n");
+}
 int main() {
-    int numFloats;
+    testTask1();
+    /*int numFloats;
     float *floats = extractAndConvertFloats(&numFloats);
 
     if (floats != NULL) {
@@ -18,7 +27,7 @@ int main() {
         printf("The sum of the processed array is: %f\n", sum);
 
         free(floats);
-    }
+    }*/
 
     return 0;
 }
