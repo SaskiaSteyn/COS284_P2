@@ -1,3 +1,8 @@
+; ==========================
+; Group member 01: Amadeus_Fidos_u22526162
+; Group member 02: Saskia_Steyn_u17267162
+; ==========================
+
 section .data
     prompt db "Enter values separated by whitespace and enclosed in pipes (|):", 0
     fmt_sum db "The sum of the processed array is: %f", 10, 0

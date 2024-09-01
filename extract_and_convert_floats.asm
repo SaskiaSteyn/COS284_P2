@@ -1,5 +1,10 @@
+; ==========================
+; Group member 01: Amadeus_Fidos_u22526162
+; Group member 02: Saskia_Steyn_u17267162
+; ==========================
+
 section .data
-    prompt db "Enter values separated by whitespace and enclosed in pipes (|):", 0
+    prompt db "Enter values separated by whitespace and enclosed in pipes (|):", 0xA, 0
     prompt_len equ $-prompt
     input_prompt db "Enter input: ", 0
 

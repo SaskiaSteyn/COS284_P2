@@ -1,6 +1,6 @@
 ; ==========================
-; Group member 01: Name_Surname_student-nr
-; Group member 02: Name_Surname_student-nr
+; Group member 01: Amadeus_Fidos_u22526162
+; Group member 02: Saskia_Steyn_u17267162
 ; ==========================
 section .bss
     endptr resq 1
@@ -12,9 +12,6 @@ section .text
     extern strtof 
 
 convertStringToFloat:
-    ; rdi - const char *str
-    ; Call strtof to convert the string to a float
-    ; rdi = input string
     lea rsi, [endptr]
     call strtof
     
