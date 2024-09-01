@@ -45,26 +45,27 @@ extractAndConvertFloats:
     mov byte [rsi + rdx - 1], 0
 
     ; Initialize pointers and counters
-    lea rsi, [input_buffer] ; RSI points to input_buffer
-    lea rdi, [float_array]  ; RDI points to float_array
-    xor rcx, rcx            ; RCX = float counter
+    lea r12, [input_buffer] ; RSI points to input_buffer
+    lea r13, [float_array]  ; RDI points to float_array
+    mov r14, 0
+    xor r14, r14            ; RCX = float counter
 
     ; Find the first pipe '|'
 .find_pipe:
-    mov al, [rsi]
+    mov al, [r12]
     cmp al, '|'
     je .found_pipe
     test al, al             ; Check for end of string (null terminator)
     jz .end_extract        ; If null terminator found, end extraction
-    inc rsi
+    inc r12
     jmp .find_pipe
 
 .found_pipe:
-    inc rsi                 ; Move past the first pipe
+    inc r12                 ; Move past the first pipe
 
     ; Start extracting floats
 .extract_floats:
-    mov al, [rsi]
+    mov al, [r12]
     cmp al, '|'
     je .end_extract         ; If the second pipe is found, end extraction
 
@@ -72,25 +73,32 @@ extractAndConvertFloats:
     je .skip_space          ; Skip spaces
 
     ; Process a float substring
-    lea rdi, [rsi]          ; RDI points to the start of the number substring
-    mov [input_buffer], rsi
+    lea rdi, [r12]          ; RDI points to the start of the number substring
+    ; mov [input_buffer], rsi
     lea rsi, [endptr]
     call strtof ; Convert string to float (result in rax)
 
     ; Store result in float_array
-    movss [float_array + rcx*8], xmm0 ; Store the result in the array
-    inc rcx                 ; Increment the float counter
-    mov rsi, [input_buffer+4]
+    movss [float_array + r14*8], xmm0 ; Store the result in the array
+    inc r14                 ; Increment the float counter
+    jmp .loop_to_next_space
 
 .skip_space:
-    inc rsi                 ; Move to the next character
-    cmp byte [rsi], 0x00      ; Check if end of string (null terminator) (segfault happens)
+    inc r12                 ; Move to the next character
+    cmp byte [r12], 0x00      ; Check if end of string (null terminator) (segfault happens)
     jz .end_extract
     jmp .extract_floats
 
+.loop_to_next_space:
+    mov al, [r12]
+    cmp al, ' '
+    je .skip_space 
+    inc r12
+    jmp .loop_to_next_space
+
 .end_extract:
     ; Allocate memory for the number of floats found
-    mov rdi, rcx            ; RDI = number of floats
+    mov rdi, r14            ; RDI = number of floats
     shl rdi, 3              ; RDI = number of floats * sizeof(float)
     call malloc             ; Allocate memory for floats
     test rax, rax           ; Check if malloc succeeded
