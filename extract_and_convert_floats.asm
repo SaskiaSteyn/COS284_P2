@@ -8,7 +8,7 @@ section .data
 
 section .bss
     input_buffer resb 256    ; Buffer for input string (256 bytes)
-    float_array resq 100     ; Temporary buffer for up to 100 floats
+    float_array resd 100     ; Temporary buffer for up to 100 floats
     endptr resq 1
 
 section .text
@@ -25,7 +25,6 @@ extern strtof
 extractAndConvertFloats:
     push rbp
     mov rbp, rsp
-    sub rsp, 8              ; Reserve space for local variables (num_floats)
 
     ; Print prompt
     mov rax, 1              ; SYS_write
@@ -42,7 +41,7 @@ extractAndConvertFloats:
     syscall
 
     ; Ensure the input buffer is null-terminated
-    mov byte [rsi + rdx - 1], 0
+    ; mov byte [input_buffer + rax - 1], 0
 
     ; Initialize pointers and counters
     lea r12, [input_buffer] ; RSI points to input_buffer
@@ -79,7 +78,7 @@ extractAndConvertFloats:
     call strtof ; Convert string to float (result in rax)
 
     ; Store result in float_array
-    movss [float_array + r14*8], xmm0 ; Store the result in the array
+    movss [float_array + r14*4], xmm0 ; Store the result in the array
     inc r14                 ; Increment the float counter
     jmp .loop_to_next_space
 
@@ -99,7 +98,7 @@ extractAndConvertFloats:
 .end_extract:
     ; Allocate memory for the number of floats found
     mov rdi, r14            ; RDI = number of floats
-    shl rdi, 3              ; RDI = number of floats * sizeof(float)
+    imul rdi, 4              ; RDI = number of floats * sizeof(float)
     call malloc             ; Allocate memory for floats
     test rax, rax           ; Check if malloc succeeded
     jz .malloc_failed       ; Jump to failure handler if NULL
@@ -107,29 +106,29 @@ extractAndConvertFloats:
     ; Copy floats into dynamically allocated array
     mov rsi, float_array    ; RSI points to the temporary float array
     mov rdi, rax            ; RDI points to the dynamically allocated array
+    mov rcx, r14
 
 .copy_floats:
     test rcx, rcx
     jz .copy_done
 
-    movq xmm0, [rsi]        ; Load float from the temporary array into xmm0
-    movq [rdi], xmm0        ; Store float in dynamically allocated array
-    add rsi, 8              ; Move to the next float in temp array
-    add rdi, 8              ; Move to the next float in allocated array
+    movd xmm0, [rsi]        ; Load float from the temporary array into xmm0
+    movd [rdi], xmm0        ; Store float in dynamically allocated array
+    add rsi, 4              ; Move to the next float in temp array
+    add rdi, 4              ; Move to the next float in allocated array
     dec rcx
     jmp .copy_floats
 
 .copy_done:
     ; Set the number of floats
-    mov rdi, [rbp+16]       ; RDI = address of num_floats (first argument)
-    mov [rdi], rcx          ; Set num_floats to the number of floats found
+    lea rdi, [rbp+16]       ; RDI = address of num_floats (first argument)
+    mov [rdi], r14          ; Set num_floats to the number of floats found
 
     ; Return pointer to dynamically allocated array
     mov rax, rax            ; Return the pointer in RAX
 
     ; Clean up stack frame and return
-    mov rsp, rbp
-    pop rbp
+    leave
     ret
 
 .malloc_failed:
